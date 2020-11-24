@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+""" Running point of application """
 from __future__ import print_function
 #import json
 #from flask import Flask
@@ -10,10 +10,12 @@ from __future__ import print_function
 #from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
 #from passnfly.api.dao.todo import TodoDAO
 #from passnfly.api.aiokafka.todo import post_data2
-from passnfly.api.models.todo import app, api, ns, todo
+from passnfly.api.models.todo import app
+#, api, ns, todo
 from passnfly.db.schema import db, City
-from passnfly.api.resources.todo import TodoList, Todo, DAO
+from passnfly.api.resources.todo import DAO
 
+#TodoList, Todo,
 #KAFKA_SERVER = "localhost:9092"
 #REPEAT_DELAY_SEC=5
 #MY_DATE_FORMAT="%a %b %d %H:%M:%S %z %Y"
@@ -28,14 +30,14 @@ from passnfly.api.resources.todo import TodoList, Todo, DAO
 #db = SQLAlchemy()
 #DAO = TodoDAO()
 
-def connect_to_db(app):
+def connect_to_db(ap1):
     """Connect the database to Flask app."""
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://postgres:Pbdivbknn123@localhost:5432/insikt'
-    app.config['SQLALCHEMY_ECHO'] = False
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.app = app
-    db.init_app(app)
+    ap1.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://postgres:Pbdivbknn123@localhost:5432/insikt'
+    ap1.config['SQLALCHEMY_ECHO'] = False
+    ap1.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.app = ap1
+    db.init_app(ap1)
 
 if __name__ == '__main__':
     connect_to_db(app)
@@ -59,4 +61,3 @@ if __name__ == '__main__':
             'source': city.source,
         })
     app.run(host="0.0.0.0", port=8032, debug=True)
-
