@@ -7,8 +7,8 @@ __author__ = 'Ignat Ignatov'
 __maintainer__ = __author__
 
 __email__ = 'ignat99@gmail.com'
-__license__ = 'MIT'
-__version__ = '0.0.1'
+__license__ = 'GPLv3'
+__version__ = '0.1.1'
 
 
 __all__ = (
