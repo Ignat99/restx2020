@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
-
+"""ORM for data manipulation"""
 #from __future__ import print_function
-#import sys
-#import json
-#from threading import Thread, current_thread
-#import hashlib
 #from flask import Flask
 #from flask_restx import Api, Resource, fields
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
-#from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
-#from kafka import KafkaProducer, KafkaConsumer
-#import time
-#from confluent_kafka.admin import AdminClient, NewTopic
+#from sqlalchemy import func
 
 
 db = SQLAlchemy()
@@ -64,20 +56,20 @@ class City(db.Model):
     @classmethod
     def update_geometries(cls):
         """Using each city's longitude and latitude, add geometry data to db."""
+#        cities = City.query.all()
 
-        cities = City.query.all()
-
-        for city in cities:
-            point = 'POINT({} {})'.format(city.longitude, city.latitude)
+#        for city in cities:
+#            point = 'POINT({} {})'.format(city.longitude, city.latitude)
 #            city.geo = point
 
-        db.session.commit()
+#        db.session.commit()
 
 
 #def connect_to_db(app):
 #    """Connect the database to Flask app."""
 
-#    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://postgres:Pbdivbknn123@localhost:5432/insikt'
+#    app.config['SQLALCHEMY_DATABASE_URI'] = \
+#        'postgres://postgres:Pbdivbknn123@localhost:5432/insikt'
 #    app.config['SQLALCHEMY_ECHO'] = False
 #    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #    db.app = app
