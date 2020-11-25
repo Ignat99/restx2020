@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """ Main model and classes of RESTX API """
 #from __future__ import print_function
-#from flask import Flask
-#from flask_restx import Api, Resource, fields
-#from flask_sqlalchemy import SQLAlchemy
-#from sqlalchemy import func
 
 class TodoDAO(object):
     """Data Access Object for Program functionalities"""

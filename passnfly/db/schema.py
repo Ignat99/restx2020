@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """ORM for data manipulation"""
 #from __future__ import print_function
-#from flask import Flask
-#from flask_restx import Api, Resource, fields
 from flask_sqlalchemy import SQLAlchemy
-#from sqlalchemy import func
 
 
 db = SQLAlchemy()
@@ -63,14 +60,3 @@ class City(db.Model):
 #            city.geo = point
 
 #        db.session.commit()
-
-
-#def connect_to_db(app):
-#    """Connect the database to Flask app."""
-
-#    app.config['SQLALCHEMY_DATABASE_URI'] = \
-#        'postgres://postgres:Pbdivbknn123@localhost:5432/insikt'
-#    app.config['SQLALCHEMY_ECHO'] = False
-#    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-#    db.app = app
-#    db.init_app(app)

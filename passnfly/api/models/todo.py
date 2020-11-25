@@ -3,9 +3,6 @@
 #from __future__ import print_function
 from flask import Flask
 from flask_restx import Api, fields
-#from flask_restx import Model, fields
-
-
 
 app = Flask(__name__)
 api = Api(
