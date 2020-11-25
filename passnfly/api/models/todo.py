@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+"""Representation of information from DB in memory"""
 #from __future__ import print_function
 from flask import Flask
 from flask_restx import Api, fields
@@ -18,6 +18,7 @@ api = Api(
 ns = api.namespace('api', description='TODO operations')
 
 def add_models_to_namespace(api_namespace):
+    """Make a hash of object by name"""
     api_namespace.models[todo.name] = todo
 
 todo = api.model(
