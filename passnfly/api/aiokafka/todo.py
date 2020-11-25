@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
-
-#from __future__ import print_function
+"""Threads for kafka journaling system communication"""
+from __future__ import print_function
 import sys
-#import json
+import json
 from threading import Thread, current_thread
 import hashlib
-#from flask import Flask
-#from flask_restx import Api, Resource, fields
-#from flask_sqlalchemy import SQLAlchemy
-#from sqlalchemy import func
-from kafka import KafkaProducer, KafkaConsumer
 import time
+from kafka import KafkaProducer, KafkaConsumer
 from confluent_kafka.admin import AdminClient, NewTopic
-#from passnfly.api.dao.todo import TodoDAO
 
 KAFKA_SERVER = "localhost:9092"
 REPEAT_DELAY_SEC=5
@@ -26,12 +21,10 @@ MY_DATE_FORMAT="%a %b %d %H:%M:%S %z %Y"
 POSTS_LIMIT_FOR_HASHTAG=10
 FORCE_RAISE=False
 
-
 class TodoThread(Thread):
     """ Special class for stop process in thread """
     def __init__(self, topic,keywords, *args, **kwargs):
         Thread.__init__(self, target=self.body, *args, **kwargs)
-       
         #self.target=self.body
         self.__run_backup = self.run
         self.killed = False
@@ -58,8 +51,10 @@ class TodoThread(Thread):
             print("Error: For Kafka need partition test (Need run ./tweeterapi.py)")
 
     def next_tuple(self):
+        """Take next json message object"""
         for message in self.consumer:
             tweet = json.loads(message.value)
+            print('Tweet : ' + tweet)
 
     def start(self):
         self.__run_backup = self.run
@@ -95,23 +90,26 @@ class TodoThread(Thread):
         self.killed = True
 
     def body(self):
+        """Wakeup and make something every REPEAT_DELAY_SEC"""
         while True:
-            print("Thread: Todo request")
+            print("Thread: Todo request " + self.name)
             try:
-#                self.hashtags_to_sender_from_generator(self.topic,self.keywords,POSTS_LIMIT_FOR_HASHTAG)
+#                self.hashtags_to_sender_from_generator(self.topic,\
+#                    self.keywords,POSTS_LIMIT_FOR_HASHTAG)
                 pass
-            except Exception as e:
+            except Exception as err1:
                 if FORCE_RAISE:
-                    raise e
+                    raise err1
                 print("Thread body Exception ")
-                print(type(e))    # the exception instance
-                print(e.args)     # arguments stored in .args
-                print(e)               
+                print(type(err1))    # the exception instance
+                print(err1.args)     # arguments stored in .args
+                print(err1)
 
             time.sleep(REPEAT_DELAY_SEC)
 
 
 def topic_from_keywords(keywords):
+    """Make a hash from set of keywords and data and lang etc"""
     print('Keywords :', keywords)
     keywords_encode = keywords.encode('utf-8')
     print('keywords_encode : ', keywords_encode)
@@ -122,13 +120,14 @@ def topic_from_keywords(keywords):
 
 
 def post_data2(keywords):
+    """Open new Kafka partition for new topic and start thread for write"""
     topic=topic_from_keywords(keywords)
     print('hash keywords for Topic : ', topic)
     global TOPIC_LIST
     if not NewTopic(topic, 1, 1) in TOPIC_LIST:
         TOPIC_LIST.append(NewTopic(topic, 1, 1))
-        ADMIN_CLIENT = AdminClient({"bootstrap.servers": KAFKA_SERVER})
-        ADMIN_CLIENT.create_topics(TOPIC_LIST)  #  ensure_topic_exists already created the topic
+        admin_client = AdminClient({"bootstrap.servers": KAFKA_SERVER})
+        admin_client.create_topics(TOPIC_LIST)  #  ensure_topic_exists already created the topic
 
     kafka_thread = TodoThread( name=topic,topic=topic,keywords= keywords.split(','))
     THREAD_LIST.append(kafka_thread)
