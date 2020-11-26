@@ -13,6 +13,7 @@ add_models_to_namespace(todo_ns)
 DAO = TodoDAO()
 
 @ns.route('/')
+@ns.response(404, 'Todo not found')
 class TodoList(Resource):
     '''Shows a list of all todos, and lets you POST to add new tasks'''
     @ns.doc('list_todos')
