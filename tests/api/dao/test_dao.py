@@ -24,8 +24,7 @@ def test_update():
     DAO = TodoDAO()
     DAO.create({'name': 'passnfly'})
     DAO.update(1, {'name': 'passnfly1'})
-    print(DAO.get(1))
-
+#    print(DAO.get(1))
     a_str = json.dumps(DAO.get(1), sort_keys=True)
     b_str = json.dumps(json.loads("""
 {"name": "passnfly1", "id": 1}
@@ -36,5 +35,5 @@ def test_delete():
     DAO = TodoDAO()
     todo = DAO.create({'name': 'passnfly'})
     DAO.delete(todo['id'])
-    print(DAO.todos)
+#    print(DAO.todos)
     assert_that([], equal_to(DAO.todos))

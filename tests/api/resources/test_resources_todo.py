@@ -47,8 +47,6 @@ def test_update():
         data=json.dumps({'name': 'passnfly1'}),
         content_type='application/json',
     )
-
     print(response.get_data(as_text=True))
     data = json.loads(response.get_data(as_text=True))
-
     assert data['name'] == 'passnfly1'
