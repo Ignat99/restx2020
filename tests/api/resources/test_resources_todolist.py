@@ -10,13 +10,11 @@ from flask import json
 
 def test_get():
     RS = TodoList()
+    todos1 = len(RS.get())
     todo = DAO.create({'name': 'passnfly'})
     print(RS.get())
-    a_str = json.dumps(RS.get()[todo['id']-1], sort_keys=True)
-    b_str = json.dumps(json.loads("""
-{"DST": null, "altitude": null, "city": null, "country": null, "iata": null, "icao": null, "id": 1, "latitude": null, "longitude": null, "name": "passnfly", "source": null, "timezone": null, "type": null, "tz": null}
-"""), sort_keys=True)
-    assert_that(a_str, equal_to(b_str))
+    todos2 = len(RS.get())
+    assert_that(todos2 - todos1, equal_to(1))
 
 
 def test_post():
