@@ -38,19 +38,19 @@ class Todo(Resource):
     '''Show a single todo item and lets you delete them'''
     @ns.doc('get_todo')
     @ns.marshal_with(todo)
-    def get(self, id1):
+    def get(self, id):
         '''Fetch a given resource'''
-        return DAO.get(id1)
+        return DAO.get(id)
 
     @ns.doc('delete_todo')
     @ns.response(204, 'Todo deleted')
-    def delete(self, id1):
+    def delete(self, id):
         '''Delete a task given its identifier'''
-        DAO.delete(id1)
+        DAO.delete(id)
         return '', 204
 
     @ns.expect(todo)
     @ns.marshal_with(todo)
-    def put(self, id1):
+    def put(self, id):
         '''Update a task given its identifier'''
-        return DAO.update(id1, api.payload)
+        return DAO.update(id, api.payload)

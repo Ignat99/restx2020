@@ -31,26 +31,3 @@ def test_post():
 
     assert response.status_code == 201
     assert data['name'] == 'passnfly'
-
-
-#def test_update():
-#    DAO = TodoDAO()
-#    api.payload = {'name': 'passnfly'}
-#    DAO.update(1, {'name': 'passnfly1'})
-#    print(RS.post())
-
-#    a_str = json.dumps(DAO.get(1), sort_keys=True)
-#    b_str = json.dumps(json.loads("""
-#{"name": "passnfly1", "id": 1}
-#"""), sort_keys=True)
-#    assert_that(a_str, equal_to(b_str))
-
-#def test_delete():
-#    DAO = TodoDAO()
-#    DAO.create({'name': 'passnfly'})
-#    DAO.delete(1)
-#    a_str = json.dumps(DAO.get(1), sort_keys=True)
-#    b_str = json.dumps(json.loads("""
-#{"name": "passnfly", "id": 1}
-#"""), sort_keys=True)
-#    assert_that(a_str, equal_to(b_str))
