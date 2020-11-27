@@ -2,7 +2,8 @@
 """ Running point of application """
 from __future__ import print_function
 from passnfly.api.models.todo import app
-from passnfly.db.schema import db, City
+from passnfly.db.sqlalchemy_extension import db
+from passnfly.db.schema import City
 from passnfly.api.resources.todo import DAO
 
 def connect_to_db(ap1):

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """ORM for data manipulation"""
 #from __future__ import print_function
-from flask_sqlalchemy import SQLAlchemy
+#from flask_sqlalchemy import SQLAlchemy
+from passnfly.db.sqlalchemy_extension import db
 
-
-db = SQLAlchemy()
+#db = SQLAlchemy()
 
 class City(db.Model):
     """A city, including its geospatial data."""
