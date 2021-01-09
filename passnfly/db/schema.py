@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ORM for data manipulation"""
 from passnfly.db.sqlalchemy_extension import db
+from geoalchemy2 import Geometry
 
 class City(db.Model):
     """A city, including its geospatial data."""
