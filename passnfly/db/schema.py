@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """ORM for data manipulation"""
-#from __future__ import print_function
-#from flask_sqlalchemy import SQLAlchemy
 from passnfly.db.sqlalchemy_extension import db
-
-#db = SQLAlchemy()
 
 class City(db.Model):
     """A city, including its geospatial data."""
@@ -25,27 +21,26 @@ class City(db.Model):
     tz = db.Column(db.String(50))
     type = db.Column(db.String(50))
     source = db.Column(db.String(50))
-#    geo = db.Column(Geometry(geometry_type="POINT"))
+    geo = db.Column(Geometry(geometry_type="POINT"))
 
     def __repr__(self):
         return "<City {name} ({lat}, {lon})>".format(
             name=self.name, lat=self.latitude, lon=self.longitude)
 
-#    def get_cities_within_radius(self, radius):
-#        """Return all cities within a given radius (in meters) of this city."""
+    def get_cities_within_radius(self, radius):
+        """Return all cities within a given radius (in meters) of this city."""
 
-#        return City.query.filter(func.ST_Distance_Sphere(City.geo, self.geo) < radius).all()
+        return City.query.filter(func.ST_Distance_Sphere(City.geo, self.geo) < radius).all()
 
     @classmethod
     def add_city(cls, name, longitude, latitude):
         """Put a new city in the database."""
 
-#        geo = 'POINT({} {})'.format(longitude, latitude)
+        geo = 'POINT({} {})'.format(longitude, latitude)
         city = City(name=name,
                            longitude=longitude,
-                           latitude=latitude)
-
-#                          geo=geo)
+                           latitude=latitude,
+                           geo=geo)
 
         db.session.add(city)
         db.session.commit()
@@ -53,10 +48,10 @@ class City(db.Model):
     @classmethod
     def update_geometries(cls):
         """Using each city's longitude and latitude, add geometry data to db."""
-#        cities = City.query.all()
+        cities = City.query.all()
 
-#        for city in cities:
-#            point = 'POINT({} {})'.format(city.longitude, city.latitude)
-#            city.geo = point
+        for city in cities:
+            point = 'POINT({} {})'.format(city.longitude, city.latitude)
+            city.geo = point
 
-#        db.session.commit()
+        db.session.commit()
