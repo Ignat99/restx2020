@@ -10,7 +10,7 @@ from kafka import KafkaProducer, KafkaConsumer
 from confluent_kafka.admin import AdminClient, NewTopic
 
 KAFKA_SERVER = "localhost:9092"
-REPEAT_DELAY_SEC=5
+REPEAT_DELAY_SEC=30
 TOPIC_LIST = []
 THREAD_LIST = []
 #KAFKA_CLIENT = []
@@ -89,14 +89,30 @@ class TodoThread(Thread):
 #        if del_name == self.name :
         self.killed = True
 
+    def hashtags_to_sender_from_generator(self,topic, hashtags,max_items=0):
+#        posts_dict=self.get_new_posts_hashtags_generator(hashtags,max_items=0)
+#        for item in posts_dict:
+        item = { 'transaction-id': 'TRANSACTION-ID',
+            'payload': {
+                'message': 'ping',
+                'force_error': 'false'
+            }
+        }
+        post_json=json.dumps(item)
+        print("send to kafka topic="+topic)
+        print(post_json)
+        future=self.producer.send(topic,post_json.encode("utf-8"))
+        print("async data transfer in background started...")
+        #self.sender_function(topic,post_json)
+
     def body(self):
         """Wakeup and make something every REPEAT_DELAY_SEC"""
         while True:
             print("Thread: Todo request " + self.name)
             try:
-#                self.hashtags_to_sender_from_generator(self.topic,\
-#                    self.keywords,POSTS_LIMIT_FOR_HASHTAG)
-                pass
+                self.hashtags_to_sender_from_generator(self.topic,\
+                    self.keywords,POSTS_LIMIT_FOR_HASHTAG)
+#                pass
             except Exception as err1:
                 if FORCE_RAISE:
                     raise err1
