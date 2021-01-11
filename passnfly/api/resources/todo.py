@@ -19,9 +19,9 @@ class TodoList(Resource):
     @ns.doc('list_todos')
     @ns.marshal_list_with(todo)
     def get(self):
-        '''List all tasks'''
-        topic=post_data2('list_todos')
-        print("We use topic: " + topic)
+        '''Make a thread for running every 30 sec ping request to kafka'''
+        topic=post_data2('ping')
+        print("We use topic for ping: " + topic)
         return DAO.todos
 
     @ns.doc('create_todo')
@@ -40,7 +40,9 @@ class Todo(Resource):
     @ns.doc('get_todo')
     @ns.marshal_with(todo)
     def get(self, id):
-        '''Fetch a given resource'''
+        '''Fetch a given resource and make pong'''
+        topic=post_data2('pong')
+        print("We use topic for pong: " + topic)
         return DAO.get(id)
 
     @ns.doc('delete_todo')
