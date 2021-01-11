@@ -1,6 +1,26 @@
 .. role:: shell(code)
    :language: shell
 
+git clone https://github.com/edenhill/librdkafka
+cd librdkafka/
+./configure
+make
+sudo apt-cache search librdkafka
+sudo apt install librdkafka1 librdkafka-dev
+cd ../twitterapi/
+./twitterapi.py
+sudo pip tweep
+sudo apt-cache search tweep
+sudo apt install python-tweepy python3-tweepy
+mcedit ./twitterapi.py
+./twitterapi.py
+sudo apt install rython-pip3
+sudo apt install python-pip3
+sudo apt install pip3
+sudo apt-cache search pip3                                                                                                                                                            sudo apt install python3-pip
+pip3 install uwsgi flask flask-cors kafka-python python-twitter tweepy psycopg2-binary confluent-kafka
+./twitterapi.py
+
 Приложение для `практического руководства`_ по разработке бэкенд-сервисов на Python (на основе `вступительного испытания`_ в `Школу бэкенд-разработки Passnfly`_ в 2020 году).
 
 .. _практического руководства: https://homedevice.pro/python-flask-restx-api/

@@ -35,5 +35,6 @@ if __name__ == '__main__':
             'tz': city.tz,
             'type': city.type,
             'source': city.source,
+            'geo': city.geo
         })
     app.run(host="0.0.0.0", port=8032, debug=True)

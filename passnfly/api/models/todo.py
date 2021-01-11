@@ -34,6 +34,7 @@ todo = api.model(
         'DST': fields.String(required=True, description='The DST details'),
         'tz': fields.String(required=True, description='The tz details'),
         'type': fields.String(required=True, description='The type details'),
-        'source': fields.String(required=True, description='The source details')
+        'source': fields.String(required=True, description='The source details'),
+        'geo': fields.String(required=True, description='The geo details')
     }
 )

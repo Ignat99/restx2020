@@ -10,7 +10,7 @@ from kafka import KafkaProducer, KafkaConsumer
 from confluent_kafka.admin import AdminClient, NewTopic
 
 KAFKA_SERVER = "localhost:9092"
-REPEAT_DELAY_SEC=5
+REPEAT_DELAY_SEC=30
 TOPIC_LIST = []
 THREAD_LIST = []
 #KAFKA_CLIENT = []
@@ -34,27 +34,29 @@ class TodoThread(Thread):
         self.keywords=keywords
         self.producer= KafkaProducer(bootstrap_servers=KAFKA_SERVER)
         try:
-            self.consumer = KafkaConsumer(bootstrap_servers=['0.0.0.0:9092'],
-                auto_offset_reset='earliest',
-                session_timeout_ms=250000,
-                request_timeout_ms=300000,
-                heartbeat_interval_ms=80000,
-                retry_backoff_ms=1000
+            self.consumer = KafkaConsumer('df911f0151f9ef021d410b4be5060972', bootstrap_servers=['0.0.0.0:9092'],
+                auto_offset_reset='latest'
+#                auto_offset_reset='earliest',
+#                session_timeout_ms=250000,
+#                request_timeout_ms=300000,
+#                heartbeat_interval_ms=80000,
+#                retry_backoff_ms=1000
                 )
         except:
             print(self.consumer)
             print("Error: Kafka not running (bin/kafka-server-start.sh config/server.properties)")
 
-        try:
-            self.consumer.subscribe(['test'])
-        except:
-            print("Error: For Kafka need partition test (Need run ./tweeterapi.py)")
+#        try:
+#            self.consumer.subscribe(['df911f0151f9ef021d410b4be5060972'])
+#        except:
+#            print("Error: For Kafka need partition test (Need run ./tweeterapi.py)")
 
     def next_tuple(self):
         """Take next json message object"""
         for message in self.consumer:
-            tweet = json.loads(message.value)
-            print('Tweet : ' + tweet)
+            ping_dict = json.loads(message.value)
+            print('Ping : ' , ping_dict['payload']['force_error'])
+#            print('Ping : ' , message.value)
 
     def start(self):
         self.__run_backup = self.run
@@ -89,14 +91,48 @@ class TodoThread(Thread):
 #        if del_name == self.name :
         self.killed = True
 
+    def ping_send(self,topic, hashtags,max_items=0):
+        item = { 'transaction-id': 'TRANSACTION-ID',
+            'payload': {
+                'message': 'ping',
+                'force_error': 'false'
+            }
+        }
+        post_json=json.dumps(item)
+        print("send to kafka topic="+topic)
+        print(post_json)
+        future=self.producer.send(topic,post_json.encode("utf-8"))
+        print("async ping data transfer started...")
+
+    def pong_send(self,topic, hashtags,max_items=0):
+        item = { 'transaction-id': 'TRANSACTION-ID',
+            'payload': {
+                'message': 'pong',
+                'force_error': 'false'
+            }
+        }
+        post_json=json.dumps(item)
+        print("send to kafka topic="+topic)
+        print(post_json)
+        future=self.producer.send(topic,post_json.encode("utf-8"))
+        print("async pong data transfer started...")
+
     def body(self):
         """Wakeup and make something every REPEAT_DELAY_SEC"""
         while True:
             print("Thread: Todo request " + self.name)
             try:
-#                self.hashtags_to_sender_from_generator(self.topic,\
-#                    self.keywords,POSTS_LIMIT_FOR_HASHTAG)
-                pass
+                if (self.name == 'df911f0151f9ef021d410b4be5060972'):
+                    self.ping_send(self.topic, self.keywords, POSTS_LIMIT_FOR_HASHTAG)
+
+                else:
+                    #self.next_tuple()
+                    message=next(self.consumer)
+                    ping_dict = json.loads(message.value)
+                    print('Ping : ' , ping_dict['payload']['force_error'])
+                    if ping_dict['payload']['force_error'] == 'false':
+                        self.pong_send(self.topic, self.keywords, POSTS_LIMIT_FOR_HASHTAG)
+
             except Exception as err1:
                 if FORCE_RAISE:
                     raise err1
