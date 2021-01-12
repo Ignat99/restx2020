@@ -32,10 +32,19 @@ class TodoThread(Thread):
 
         self.topic=topic
         self.keywords=keywords
-        self.producer= KafkaProducer(bootstrap_servers=KAFKA_SERVER)
+        self.producer= KafkaProducer(bootstrap_servers=KAFKA_SERVER,
+            acks='all',
+            retries=5,
+            )
+#            enable_idempotence=True,
+#            max_in_flight_requests_per_connection=1
+#            transactional_id='my-transactional-id'
         try:
-            self.consumer = KafkaConsumer('df911f0151f9ef021d410b4be5060972', bootstrap_servers=['0.0.0.0:9092'],
-                auto_offset_reset='latest'
+            self.consumer = KafkaConsumer(bootstrap_servers=['0.0.0.0:9092'],
+                auto_offset_reset='latest',
+                group_id='ping-pong',
+                client_id='client-1',
+#                isolation_level='read_committed'
 #                auto_offset_reset='earliest',
 #                session_timeout_ms=250000,
 #                request_timeout_ms=300000,
@@ -46,10 +55,10 @@ class TodoThread(Thread):
             print(self.consumer)
             print("Error: Kafka not running (bin/kafka-server-start.sh config/server.properties)")
 
-#        try:
-#            self.consumer.subscribe(['df911f0151f9ef021d410b4be5060972'])
-#        except:
-#            print("Error: For Kafka need partition test (Need run ./tweeterapi.py)")
+        try:
+            self.consumer.subscribe(['df911f0151f9ef021d410b4be5060972'])
+        except:
+            print("Error: For Kafka need partition test (Need run ./tweeterapi.py)")
 
     def next_tuple(self):
         """Take next json message object"""
