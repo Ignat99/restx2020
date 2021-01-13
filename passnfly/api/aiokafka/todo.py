@@ -6,7 +6,8 @@ import json
 from threading import Thread, current_thread
 import hashlib
 import time
-from kafka import KafkaProducer, KafkaConsumer
+#from kafka import KafkaProducer, KafkaConsumer
+from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient, NewTopic
 
 KAFKA_SERVER = "localhost:9092"
@@ -32,25 +33,38 @@ class TodoThread(Thread):
 
         self.topic=topic
         self.keywords=keywords
-        self.producer= KafkaProducer(bootstrap_servers=KAFKA_SERVER,
-            acks='all',
-            retries=5,
-            )
+        self.producer=Producer({'bootstrap.servers': KAFKA_SERVER,
+            'acks': 'all',
+            'retries': 5
+        })
+
+#        self.producer= KafkaProducer(bootstrap_servers=KAFKA_SERVER,
+#            acks='all',
+#            retries=5,
+#            )
+
 #            enable_idempotence=True,
 #            max_in_flight_requests_per_connection=1
 #            transactional_id='my-transactional-id'
         try:
-            self.consumer = KafkaConsumer(bootstrap_servers=['0.0.0.0:9092'],
-                auto_offset_reset='latest',
-                group_id='ping-pong',
-                client_id='client-1',
+            self.consumer = Consumer({'bootstrap.servers': '0.0.0.0:9092',
+                'auto.offset.reset': 'earliest',
+                'group.id': 'ping-pong',
+                'client.id': 'client-1'
+            })
+
+#            self.consumer = KafkaConsumer(bootstrap_servers=['0.0.0.0:9092'],
+#                auto_offset_reset='latest',
+#                group_id='ping-pong',
+#                client_id='client-1',
+
 #                isolation_level='read_committed'
 #                auto_offset_reset='earliest',
 #                session_timeout_ms=250000,
 #                request_timeout_ms=300000,
 #                heartbeat_interval_ms=80000,
 #                retry_backoff_ms=1000
-                )
+#                )
         except:
             print(self.consumer)
             print("Error: Kafka not running (bin/kafka-server-start.sh config/server.properties)")
@@ -100,6 +114,15 @@ class TodoThread(Thread):
 #        if del_name == self.name :
         self.killed = True
 
+    def delivery_report(self, err, msg):
+        """ Called once for each message produced to indicate delivery result.
+            Triggered by poll() or flush(). """
+        if err is not None:
+            print('Message delivery failed: {}'.format(err))
+        else:
+            print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
+
+
     def ping_send(self,topic, hashtags,max_items=0):
         item = { 'transaction-id': 'TRANSACTION-ID',
             'payload': {
@@ -110,7 +133,10 @@ class TodoThread(Thread):
         post_json=json.dumps(item)
         print("send to kafka topic="+topic)
         print(post_json)
-        future=self.producer.send(topic,post_json.encode("utf-8"))
+#        future=self.producer.send(topic,post_json.encode("utf-8"))
+        self.producer.poll(0)
+        self.producer.produce(topic, post_json.encode("utf-8"), callback=self.delivery_report)
+        self.producer.flush()
         print("async ping data transfer started...")
 
     def pong_send(self,topic, hashtags,max_items=0):
@@ -123,7 +149,10 @@ class TodoThread(Thread):
         post_json=json.dumps(item)
         print("send to kafka topic="+topic)
         print(post_json)
-        future=self.producer.send(topic,post_json.encode("utf-8"))
+#        future=self.producer.send(topic,post_json.encode("utf-8"))
+        self.producer.poll(0)
+        self.producer.produce(topic, post_json.encode("utf-8"), callback=self.delivery_report)
+        self.producer.flush()
         print("async pong data transfer started...")
 
     def body(self):
@@ -136,8 +165,15 @@ class TodoThread(Thread):
 
                 else:
                     #self.next_tuple()
-                    message=next(self.consumer)
-                    ping_dict = json.loads(message.value)
+#                    message=next(self.consumer)
+                    message = self.consumer.poll(1.0)
+                    if message is None:
+                        continue
+                    if message.error():
+                        print("Consumer error: {}".format(message.error()))
+                        continue
+
+                    ping_dict = json.loads(message.value().decode('utf-8'))
                     print('Ping : ' , ping_dict['payload']['force_error'])
                     if ping_dict['payload']['force_error'] == 'false':
                         self.pong_send(self.topic, self.keywords, POSTS_LIMIT_FOR_HASHTAG)
