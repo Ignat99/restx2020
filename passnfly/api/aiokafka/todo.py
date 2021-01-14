@@ -35,7 +35,7 @@ class TodoThread(Thread):
         self.transactional_id='todo.py'
 
         try:
-            self.consumer = Consumer({'bootstrap.servers': '0.0.0.0:9092',
+            self.consumer = Consumer({'bootstrap.servers': KAFKA_SERVER,
                 'auto.offset.reset': 'earliest',
                 'group.id': 'ping-pong',
                 'client.id': 'client-1',
@@ -63,7 +63,7 @@ class TodoThread(Thread):
             # assign() to a single partition rather than subscribe().
             # A more complex alternative is to dynamically create a producer per
             # partition in subscribe's rebalance callback.
-#            self.consumer.assign([TopicPartition('df911f0151f9ef021d410b4be5060972', self.input_partition)])
+#            self.consumer.assign([TopicPartition(['df911f0151f9ef021d410b4be5060972'], self.input_partition)])
         except:
             print("Error: For Kafka need partition test (Need run ./tweeterapi.py)")
 
@@ -73,7 +73,7 @@ class TodoThread(Thread):
         self.producer=Producer({'bootstrap.servers': KAFKA_SERVER,
             'acks': 'all',
             'retries': 5,
-            'transactional.id': self.transactional_id
+#            'transactional.id': self.transactional_id
         })
 
 #            enable_idempotence=True,
@@ -81,8 +81,6 @@ class TodoThread(Thread):
 
         # Initialize producer transaction.
 #        self.producer.init_transactions()
-        # Start producer transaction.
-#        self.producer.begin_transaction()
 
         self.eof = {}
         self.msg_cnt = 0
@@ -152,7 +150,7 @@ class TodoThread(Thread):
         print(post_json)
         self.producer.poll(0)
         self.producer.produce(topic, post_json.encode("utf-8"), callback=self.delivery_report)
-        self.producer.flush()
+#        self.producer.flush()
         print("async ping data transfer started...")
 
     def pong_send(self,topic, hashtags,max_items=0):
@@ -167,16 +165,35 @@ class TodoThread(Thread):
         print(post_json)
         self.producer.poll(0)
         self.producer.produce(topic, post_json.encode("utf-8"), callback=self.delivery_report)
-        self.producer.flush()
+#        self.producer.flush()
         print("async pong data transfer started...")
 
     def body(self):
         """Wakeup and make something every REPEAT_DELAY_SEC"""
+
         print("=== Starting Consume-Transform-Process loop ===")
         while True:
             print("Thread: Todo request {} -  {} ".format(self.name, str(self.msg_cnt)))
             # serve delivery reports from previous produce()s
             self.producer.poll(0)
+
+
+            if (self.name == 'df911f0151f9ef021d410b4be5060972'):
+                # Start producer transaction.
+#                self.producer.begin_transaction()
+                self.ping_send(self.topic, self.keywords, POSTS_LIMIT_FOR_HASHTAG)
+                # Send the consumer's position to transaction to commit
+                # them along with the transaction, committing both
+                # input and outputs in the same transaction is what provides EOS.
+#                self.producer.send_offsets_to_transaction(
+#                    self.consumer.position(self.consumer.assignment()),
+#                    self.consumer_group_metadata())
+
+                # Commit the transaction
+#                self.producer.commit_transaction()
+                time.sleep(REPEAT_DELAY_SEC)
+                continue
+
 
             # read message from input_topic
             message = self.consumer.poll(timeout=1.0)
@@ -190,7 +207,7 @@ class TodoThread(Thread):
                     print("=== Reached the end of {} [{}] at {}====".format(
                         msg_topic, msg_partition, message.offset()))
 
-                    if len(eof) == len(self.consumer.assignment()):
+                    if len(self.eof) == len(self.consumer.assignment()):
                         print("=== Reached end of input ===")
                         break
                 continue
@@ -200,10 +217,7 @@ class TodoThread(Thread):
 
             # process message
             try:
-                if (self.name == 'df911f0151f9ef021d410b4be5060972'):
-                    self.ping_send(self.topic, self.keywords, POSTS_LIMIT_FOR_HASHTAG)
-
-                else:
+                if (self.name == '6fdb087aa3fbfbcb8287a593a0919e61'):
                     ping_dict = json.loads(message.value().decode('utf-8'))
                     print('Ping : ' , ping_dict['payload']['force_error'])
 
@@ -236,7 +250,7 @@ class TodoThread(Thread):
                 print(err1.args)     # arguments stored in .args
                 print(err1)
 
-            time.sleep(REPEAT_DELAY_SEC)
+#            time.sleep(REPEAT_DELAY_SEC)
 
 
         print("=== Committing final transaction with {} messages ===".format(self.msg_cnt))
