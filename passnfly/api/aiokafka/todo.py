@@ -6,7 +6,6 @@ import json
 from threading import Thread, current_thread
 import hashlib
 import time
-#from kafka import KafkaProducer, KafkaConsumer
 from confluent_kafka import Producer, Consumer, KafkaError, TopicPartition
 from confluent_kafka.admin import AdminClient, NewTopic
 
@@ -46,11 +45,6 @@ class TodoThread(Thread):
 
 
 
-#            self.consumer = KafkaConsumer(bootstrap_servers=['0.0.0.0:9092'],
-#                auto_offset_reset='latest',
-#                group_id='ping-pong',
-#                client_id='client-1',
-
 #                isolation_level='read_committed'
 #                auto_offset_reset='earliest',
 #                session_timeout_ms=250000,
@@ -81,11 +75,6 @@ class TodoThread(Thread):
             'retries': 5,
             'transactional.id': self.transactional_id
         })
-
-#        self.producer= KafkaProducer(bootstrap_servers=KAFKA_SERVER,
-#            acks='all',
-#            retries=5,
-#            )
 
 #            enable_idempotence=True,
 #            max_in_flight_requests_per_connection=1
@@ -161,7 +150,6 @@ class TodoThread(Thread):
         post_json=json.dumps(item)
         print("send to kafka topic="+topic)
         print(post_json)
-#        future=self.producer.send(topic,post_json.encode("utf-8"))
         self.producer.poll(0)
         self.producer.produce(topic, post_json.encode("utf-8"), callback=self.delivery_report)
         self.producer.flush()
@@ -177,7 +165,6 @@ class TodoThread(Thread):
         post_json=json.dumps(item)
         print("send to kafka topic="+topic)
         print(post_json)
-#        future=self.producer.send(topic,post_json.encode("utf-8"))
         self.producer.poll(0)
         self.producer.produce(topic, post_json.encode("utf-8"), callback=self.delivery_report)
         self.producer.flush()
@@ -190,8 +177,6 @@ class TodoThread(Thread):
             print("Thread: Todo request {} -  {} ".format(self.name, str(self.msg_cnt)))
             # serve delivery reports from previous produce()s
             self.producer.poll(0)
-                    #self.next_tuple()
-#                    message=next(self.consumer)
 
             # read message from input_topic
             message = self.consumer.poll(timeout=1.0)
