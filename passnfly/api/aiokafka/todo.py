@@ -8,6 +8,7 @@ import hashlib
 import time
 from confluent_kafka import Producer, Consumer, KafkaError, TopicPartition
 from confluent_kafka.admin import AdminClient, NewTopic
+from config import *
 
 KAFKA_SERVER = "localhost:9092"
 REPEAT_DELAY_SEC=30
@@ -153,8 +154,8 @@ class TodoThread(Thread):
 #        self.producer.flush()
         print("async ping data transfer started...")
 
-    def pong_send(self,topic, hashtags,max_items=0):
-        item = { 'transaction-id': self.transactional_id,
+    def pong_send(self, topic, offset):
+        item = { 'transaction-id': self.transactional_id+'-'+str(offset),
             'payload': {
                 'message': 'pong',
                 'force_error': 'false'
@@ -223,7 +224,11 @@ class TodoThread(Thread):
 
                     # produce transformed message to output topic TODO: dead_letter topic
                     if ping_dict['payload']['force_error'] == 'false':
-                        self.pong_send(self.topic, self.keywords, POSTS_LIMIT_FOR_HASHTAG)
+                        # Work time for calculation job
+                        time.sleep(REPEAT_DELAY_SEC)
+                        self.pong_send(self.topic, self.msg_cnt)
+                    else:
+                        self.pong_send('dead_letter', self.msg_cnt)
 
                     if self.msg_cnt % 100 == 0:
                         print("=== Committing transaction with {} messages at input offset {} ===".format(
@@ -250,7 +255,6 @@ class TodoThread(Thread):
                 print(err1.args)     # arguments stored in .args
                 print(err1)
 
-#            time.sleep(REPEAT_DELAY_SEC)
 
 
         print("=== Committing final transaction with {} messages ===".format(self.msg_cnt))
@@ -280,6 +284,12 @@ def post_data2(keywords):
     topic=topic_from_keywords(keywords)
     print('hash keywords for Topic : ', topic)
     global TOPIC_LIST
+
+    if not NewTopic('dead_letter', 1, 1) in TOPIC_LIST:
+        TOPIC_LIST.append(NewTopic('dead_letter', 1, 1))
+        admin_client = AdminClient({"bootstrap.servers": KAFKA_SERVER})
+        admin_client.create_topics(TOPIC_LIST)  #  ensure_topic_exists already created the topic
+
     if not NewTopic(topic, 1, 1) in TOPIC_LIST:
         TOPIC_LIST.append(NewTopic(topic, 1, 1))
         admin_client = AdminClient({"bootstrap.servers": KAFKA_SERVER})

@@ -5,7 +5,7 @@ from passnfly.api.models.todo import app
 from passnfly.db.sqlalchemy_extension import db
 from passnfly.db.schema import City
 from passnfly.api.resources.todo import DAO
-from config import *
+#from config import *
 
 def connect_to_db(ap1):
     """Connect the database to Flask app."""
