@@ -1,0 +1,234 @@
+version: "3.7"
+services:
+  database:
+      image: mysql:5.7.21
+      ports:
+        - ${EXTERNAL_MYSQL_PORT}:3306
+      environment:
+        - MYSQL_ROOT_PASSWORD=test
+        - MYSQL_USER=test
+        - MYSQL_PASSWORD=test
+        - MYSQL_DATABASE=insikt
+      volumes:
+#        - mydata:/var/lib/mysql
+        - type: volume
+          source: mydata
+          target: /var/lib/mysql
+      deploy:
+        mode: replicated
+        replicas: 1
+#        placement:
+#          constraints: [node.role == manager]
+#          constraints:
+#            - engine.labels.node.type == api
+      networks:
+#        insikt_overlay:
+        webnet:
+#          ipv4_address: 172.18.0.4
+          aliases:
+            - database.service
+
+  viz:
+      image: dockersamples/visualizer
+      ports:
+        - 9090:8080
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      deploy:
+        placement:
+          constraints: [node.role == manager]
+
+  insiktbackend:
+#    image: "${DOCKER_REGISTRY}/${PROJECT_BACKEND}:${INSIKT_BACKEND_VERSION}"
+    image: insikt-backend:latest
+    environment:
+      - SQL_HOST=database
+#      - SQL_HOST=192.168.99.100
+      - DB_URL=jdbc:mysql://database:3306/insikt
+#      - DB_URL=jdbc:mysql://192.168.99.100:3306/insikt
+      - DB_USER=test
+      - DB_PASS=test
+      - DB_PORT=3306
+      - ENV
+      - FRONTEND_HOST
+      - FRONTEND_PORT
+      - TWITTER2RABBIT_HOST
+      - TWITTER2RABBIT_PORT
+      - ELASTIC_HOST=elasticsearch
+#      - ELASTIC_HOST=192.168.99.100
+      - ELASTIC_PORT=9300
+      - ELASTIC_INDEX=demo
+      - ELASTIC_INDEX_TYPE=tweet
+      - EMAIL_USERNAME=ignat99@gmail.com
+      - EMAIL_PASSWORD=test
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+    ports:
+      - ${EXTERNAL_BACKEND_PORT}:8080
+    deploy:
+#      placement:
+#        constraints: [node.role == worker]
+      mode: replicated
+      replicas: 1
+#      placement:
+#        constraints:
+#          - engine.labels.node.type == api
+#    depends_on:
+#      - database
+#      - elasticsearch
+#    restart: always
+    networks:
+#      insikt_overlay:
+      webnet:
+        aliases:
+          - backend.service
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.15
+#    user: 111:113
+    configs:
+      - source: elasticconfig
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+    ports:
+      - $ELASTICSEARCH_API_PORT:9200
+      - $ELASTICSEARCH_TRANSPORT_PORT:9300
+    deploy:
+#      mode: global
+      mode: replicated
+      replicas: 1
+#      placement:
+#        constraints:
+#          - engine.labels.node.type == api
+#      resources:
+#        limits:
+#          cpus: "2"
+#          memory: "1g"
+
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+
+#    mem_limit: 1g
+#      - $ELASTICSEARCH_DUMP_FOLDER/es_volume:/usr/share/elasticsearch/data
+    volumes:
+#      - esdata:/usr/share/elasticsearch/data
+      - type: volume
+        source: esdata
+        target: /usr/share/elasticsearch/data
+
+#        volume:
+#          nocopy: true
+
+    environment:
+#      cluster.name: "docker-cluster"
+#      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: "-Xmx500m -Xms500m"
+#      ES_HEAP_SIZE: "1g"
+#      MAX_OPEN_FILES: 65535
+#      MAX_LOCKED_MEMORY: "unlimited"
+#    restart: always
+    networks:
+#      insikt_overlay:
+      webnet:
+        aliases:
+          - elasticsearch.service
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.6.15
+    configs:
+      - source: kibanaconfig
+        target: /usr/share/kibana/config/kibana.yml
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+#      - ELASTICSEARCH_URL=http://192.168.99.100:9200
+    ports:
+#      - $KIBANA_PORT:5601
+      - 5601:5601
+    deploy:
+      mode: replicated
+      replicas: 1
+#      placement:
+#        constraints:
+#          - engine.labels.node.type == api
+    networks:
+#      insikt_overlay:
+      webnet:
+        aliases:
+          - kibana.service
+#    depends_on:
+#      - elasticsearch
+
+
+  postgresql:
+    image: ruby-frontend-db:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: inviso
+#      volumes:
+#        - ./postgres-data:/var/lib/postgresql/data
+    ports:
+    - 5431:5431
+    deploy:
+      mode: replicated
+      replicas: 1
+#    restart: always
+    networks:
+      webnet:
+        aliases:
+          - postgresql.service
+#          default:
+#            ipv4_address: 172.18.0.6
+
+
+configs:
+  frontendconfig:
+    file: /home/py/tmp/insikt-deploy-entrega/insikt-swarm/config/nginx/nginx.conf
+  kibanaconfig:
+    file: /home/py/tmp/insikt-deploy-entrega/insikt-swarm/config/kibana/kibana.yml
+  elasticconfig:
+    file: /home/py/tmp/insikt-deploy-entrega/insikt-swarm/config/elasticsearch/elasticsearch.yml
+#  logstashconfig:
+#    file: /home/py/tmp/insikt-deploy-entrega/insikt-swarm/config/logstash/logstash.conf
+#  logstashyml:
+#    file: /home/ubuntu/tmp/insikt-deploy-entrega/insikt-swarm/config/logstash/logstash.yml
+
+secrets:
+  cert:
+    file: /home/py/tmp/insikt-deploy-entrega/insikt-swarm/config/nginx/certs/cert.key
+  privateKey:
+    file: /home/py/tmp/insikt-deploy-entrega/insikt-swarm/config/nginx/certs/inviso.cert
+
+
+#      device: "/home/ubuntu/opt/docker-volumes/es_volume"
+
+volumes:
+  esdata:
+    name: /home/py/esdata
+
+#    driver: local
+#    driver_opts:
+#      type: none
+#      device: "/home/ubuntu/esdata"
+#      o: bind
+
+  mydata:
+    name: /home/py/opt/docker-volumes/mysql
+
+#    driver: local
+#    driver_opts:
+#      type: none
+#      device: "/home/ubuntu/opt/docker-volumes/mysql"
+#      o: bind
+
+#  postgres-data:
+#    name: /
+
+networks:
+#  insikt_overlay:
+  webnet:
+    driver: overlay
+    attachable: true
+#    external: true
+    
