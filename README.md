@@ -9,7 +9,7 @@ screen -dmS abc
 
 screen -r abc
 
-./app.py
+./passnfly/api/app.py
 
 Ctr-a d
 ```
